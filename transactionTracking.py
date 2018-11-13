@@ -30,12 +30,22 @@ idx = '7d4eeda69c0420d0b4a87c91aeefe3d4c3de7ccf816355ebe0bdc6cbd1b4c0cd'
 #while(len(idx) != 0):
 #    idx = transc_backward(idx)
     
-#def trans_forward(id):
-
-sender = tx_out[tx_out['txid'] == idx]
-receiver = tx_in[tx_in['hashPrevOut'] == idx]
-test = tx_out[tx_out['txid'] == receiver['txid'].iloc[0]]
-
-print(sender['address'], test['address'])
+def trans_forward(idx, send):
+   sender = tx_out[tx_out['txid'] == idx]
+   hashNext = tx_in[tx_in['hashPrevOut'] == idx]
+   receive = tx_out[tx_out['txid'] == hashNext['txid'].iloc[0]]
+   
+   if send == '':
+       print('TxID: ', sender['txid'].iloc[0], 'Sender: ', 0, 'Receiver: ', sender['address'].values)
+   else:
+       print('TxID: ', sender['txid'].iloc[0], 'Sender: ', send, 'Receiver: ', sender['address'].values)
+   try:
+        return receive['txid'].iloc[0], sender['address'].iloc[0]
+   except:
+        return '', 'Blank'
+    
+send = ''
+while(len(idx) != 0):
+    idx, send = trans_forward(idx, send)
     
     
