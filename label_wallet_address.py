@@ -11,7 +11,16 @@ from datetime import datetime
 #est = blockchain.blockexplorer.get_address('1FCUQUYRCjxSfkNk5XnKx1xfNYvdZScrGt')
 #tt = test.transactions
 
-addr = '18hcZVFPqDNAovJmb9vA6hEJrDz6uWXNGh'
+def label(labeled_list):
+    for i in labeled_list:
+        address = blockchain.blockexplorer.get_address(i)
+        final_bal = address.final_balance/100000000
+        trans = address.n_tx
+        total_rec = address.total_received/100000000
+        total_sent = address.total_sent/100000000
+        print(final_bal/trans, total_rec/trans, trans, total_rec)
+
+addr = '34xp4vRoCGJym3xR7yCVPFHoCNxv4Twseo'
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
 
 main_address = blockchain.blockexplorer.get_address(addr)
@@ -87,8 +96,9 @@ for i in freq_addrs_out, amt_addrs_out, freq_addrs_in, amt_addrs_in:
             final_list.append(j)
 
 final_list = (Counter(final_list)).most_common
-print(final_list)
+#print(final_list)
 
 #for i in len(final_list):
 #    print(i, blockchain.blockexplorer.get_address(i).total_received, blockchain.blockexplorer.get_address(i).n_tx, blockchain.blockexplorer.get_address(i).final_balance)
+label(already_labeled)
 
