@@ -1,7 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Nov 22 11:56:04 2018
+
+@author: agile
+"""
+
 #from blockchain import statistics
 import blockchain
 from collections import Counter, OrderedDict
 from datetime import datetime
+from multiprocessing.pool import ThreadPool
+import pandas as pd
+import threading
 #print(statistics.get().blocks_size)
 
 #print(blockchain.statistics.get().blocks_size)
@@ -10,27 +21,28 @@ from datetime import datetime
 #print(blockchain.blockexplorer.get_address('1FCUQUYRCjxSfkNk5XnKx1xfNYvdZScrGt').total_sent)
 #est = blockchain.blockexplorer.get_address('1FCUQUYRCjxSfkNk5XnKx1xfNYvdZScrGt')
 #tt = test.transactions
-
-def validation(addr_list, labeled_list):
-    return 0
-
-
-
-def label(labeled_list):
-    for i in labeled_list:
-        address = blockchain.blockexplorer.get_address(i)
-        final_bal = address.final_balance/100000000
-        trans = address.n_tx
-        total_rec = address.total_received/100000000
-        total_sent = address.total_sent/100000000
-        print(final_bal/trans, total_rec/trans, trans, total_rec)
-
-addr = '1EruNcryxv71TTMvBJC2w7kYm8NPZ8Sapv'
+pool = ThreadPool(processes=4)
+address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+addresses = ['1EruNcryxv71TTMvBJC2w7kYm8NPZ8Sapv', '15WX2EDHq1ZTAkrKvSGVfFqKzjbid5sJtp',
+             '1CHFC7yCBNyJWvFEuD9q2z1qYEqZrbPnnu', '1NpmsWtQArECreydtxgZn8n6eseT67PNyn',
+             '1K4qyrencKezPzeaDsugDaSN2rJCTPwt6R', '1Mfg4DZJy9ubCVurh3fos4UvfcZHFMsPM3']
+final_list = {}
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
-
-def get_addresses(addr):
+for addr in addresses:
+    def validation(i):
+        address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+        for j in i:
+            temp_addr = blockchain.blockexplorer.get_address(j)
+            n_tx = temp_addr.n_tx
+            final_bal = temp_addr.final_balance/100000000
+            recd = temp_addr.total_received/100000000
+            sent = temp_addr.total_sent/100000000
+            temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal, 'Received': recd, 'Sent': sent}
+            address_details = address_details.append(temp , ignore_index=True)   
+        return address_details    
+        
     main_address = blockchain.blockexplorer.get_address(addr)
-
+    
     balance = main_address.final_balance
     
     output_addrs={}
@@ -43,7 +55,6 @@ def get_addresses(addr):
     sum_in = 0
     sum_out = 0
     imp_trans = []
-    
     
     
     already_labeled = []
@@ -92,29 +103,23 @@ def get_addresses(addr):
         amt_addrs_out.remove(addr)
     except:
         1
-    final_list = {}
+        
     for i in freq_addrs_out, amt_addrs_out, freq_addrs_in, amt_addrs_in:
-    #    try:
-    #        for j in i[0:10]:
-    #            final_list.append(j)
-    #    except:
-    #        for j in i:
-    #            final_list.append(j)
         for j in i:
             if j not in final_list.keys():
                 final_list[j]=0
             final_list[j]= final_list[j]+1
-
-    final_list = sorted(final_list.items(), key=lambda kv: kv[1], reverse=True)
+    total_len = len(already_labeled)%4
     
-    return final_list, already_labeled
-#final_list = (Counter(final_list)).most_common
-#print(final_list)
-
-#for i in len(final_list):
-#    print(i, blockchain.blockexplorer.get_address(i).total_received, blockchain.blockexplorer.get_address(i).n_tx, blockchain.blockexplorer.get_address(i).final_balance)
-#label(already_labeled)
-
-final_list, already_labeled = get_addresses(addr) 
+    X1 = pool.apply_async(validation, [already_labeled[0:21]])
+    X2 = pool.apply_async(validation, [already_labeled[21:41]])
+    X3 = pool.apply_async(validation, [already_labeled[41:61]])
+    X4 = pool.apply_async(validation, [already_labeled[61:83]])
+    while(X1.ready() == False) & (X2.ready() == False) & (X3.ready() == False) & (X4.ready() == False):
+        1
     
-#validation(final_list, already_labeled)
+    print('-------------------------------DONE------------------', len(X1.get()), len(X2.get()), len(X3.get()), len(X4.get()))
+# 
+    address_details = address_details.append([X1.get(), X2.get(), X3.get(), X4.get()], ignore_index=True)
+    #address_details = pd.concat(address_details)
+final_list = sorted(final_list.items(), key=lambda kv: kv[1], reverse=True)

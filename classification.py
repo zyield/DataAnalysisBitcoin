@@ -17,14 +17,16 @@ pool = ThreadPool(processes=4)
 addr = '3KR3WFLeW2bdWu1BGFM6uwM3uTkeJG3xvm'
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
 X = []
+l =[]
 def kmeans(i):
-    global X
+    global X, l
     temp_addr = blockchain.blockexplorer.get_address(i)
     n_tx = temp_addr.n_tx
     final_bal = temp_addr.final_balance/100000000
     recd = temp_addr.total_received/100000000
     sent = temp_addr.total_sent/100000000
     X.append([(final_bal/n_tx), (recd/n_tx), (sent/n_tx), (n_tx)])
+    l.append(temp_addr.address)
 
 def kmeans2(i):
     global test
@@ -118,9 +120,9 @@ def get_addresses(addr):
 final_list, already_labeled = get_addresses(addr)
 test = []
 print(datetime.now())
-for i in already_labeled:
-    kmeans2(i)
-print('***********************************DONE******************************************')
+#for i in already_labeled:
+#    kmeans2(i)
+#print('***********************************DONE******************************************')
 print(datetime.now())
 for i in range(0, len(already_labeled)-3, 4):
     X1 = pool.apply_async(kmeans, [already_labeled[i]])
@@ -133,6 +135,6 @@ while(X4.ready() == False):
 
 print(datetime.now())
 print('--------------------------------')
-clustering = KMeans(n_clusters = 3, random_state=10) # 3 for groups and 5 are random points
+clustering = KMeans(n_clusters = 2, random_state=5) # 3 for groups and 5 are random points
 clustering.fit(X)    
 print(clustering.labels_)
