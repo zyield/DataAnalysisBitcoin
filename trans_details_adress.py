@@ -21,11 +21,10 @@ import threading
 #print(blockchain.blockexplorer.get_address('1FCUQUYRCjxSfkNk5XnKx1xfNYvdZScrGt').total_sent)
 #est = blockchain.blockexplorer.get_address('1FCUQUYRCjxSfkNk5XnKx1xfNYvdZScrGt')
 #tt = test.transactions
+print(datetime.now())
 pool = ThreadPool(processes=4)
 address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
-addresses = ['1EruNcryxv71TTMvBJC2w7kYm8NPZ8Sapv', '15WX2EDHq1ZTAkrKvSGVfFqKzjbid5sJtp',
-             '1CHFC7yCBNyJWvFEuD9q2z1qYEqZrbPnnu', '1NpmsWtQArECreydtxgZn8n6eseT67PNyn',
-             '1K4qyrencKezPzeaDsugDaSN2rJCTPwt6R', '1Mfg4DZJy9ubCVurh3fos4UvfcZHFMsPM3']
+addresses = ['3GaaE9hHGRScqLFf55tqLj4YtdKCMsiKWQ']
 final_list = {}
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
 for addr in addresses:
@@ -109,12 +108,12 @@ for addr in addresses:
             if j not in final_list.keys():
                 final_list[j]=0
             final_list[j]= final_list[j]+1
-    total_len = len(already_labeled)%4
-    
-    X1 = pool.apply_async(validation, [already_labeled[0:21]])
-    X2 = pool.apply_async(validation, [already_labeled[21:41]])
-    X3 = pool.apply_async(validation, [already_labeled[41:61]])
-    X4 = pool.apply_async(validation, [already_labeled[61:83]])
+    total_len = int(len(already_labeled)/4)
+    print(len(already_labeled))
+    X1 = pool.apply_async(validation, [already_labeled[0:total_len]])
+    X2 = pool.apply_async(validation, [already_labeled[total_len:(total_len*2)]])
+    X3 = pool.apply_async(validation, [already_labeled[(total_len*2):(total_len*3)]])
+    X4 = pool.apply_async(validation, [already_labeled[(total_len*3):]])
     while(X1.ready() == False) & (X2.ready() == False) & (X3.ready() == False) & (X4.ready() == False):
         1
     
@@ -123,3 +122,7 @@ for addr in addresses:
     address_details = address_details.append([X1.get(), X2.get(), X3.get(), X4.get()], ignore_index=True)
     #address_details = pd.concat(address_details)
 final_list = sorted(final_list.items(), key=lambda kv: kv[1], reverse=True)
+address_details = address_details.drop_duplicates()
+address_details = address_details[~address_details['Address'].isin(addresses)]
+
+print(datetime.now())
