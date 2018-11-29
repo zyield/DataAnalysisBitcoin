@@ -37,6 +37,7 @@ def validation(i):
 def address_postmortem(addresses):
     pool = ThreadPool(processes=8)
     address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+    list_labelled = []
     final_list = {}
     for addr in addresses:
         main_address = blockchain.blockexplorer.get_address(addr)
@@ -44,7 +45,6 @@ def address_postmortem(addresses):
         input_addrs={}
         
         already_labeled = []
-        
         for i in main_address.transactions:
             temp_list = []
             for j in i.inputs:
@@ -93,41 +93,12 @@ def address_postmortem(addresses):
                 if j not in final_list.keys():
                     final_list[j]=0
                 final_list[j]= final_list[j]+1
-                
-        if (len(already_labeled) > 500):
-            already_labeled = already_labeled[0:500]
 
         total_len = int(len(already_labeled)/8)
         print(len(already_labeled))
-        X1 = pool.apply_async(validation, [already_labeled[0:total_len]])
-        X2 = pool.apply_async(validation, [already_labeled[total_len:(total_len*2)]])
-        X3 = pool.apply_async(validation, [already_labeled[(total_len*2):(total_len*3)]])
-        X4 = pool.apply_async(validation, [already_labeled[(total_len*3):(total_len*4)]])
-        X5 = pool.apply_async(validation, [already_labeled[(total_len*4):(total_len*5)]])
-        X6 = pool.apply_async(validation, [already_labeled[(total_len*5):(total_len*6)]])
-        X7 = pool.apply_async(validation, [already_labeled[(total_len*6):(total_len*7)]])
-        X8 = pool.apply_async(validation, [already_labeled[(total_len*7):]])
-        while(X1.ready() == False) & (X2.ready() == False) & (X3.ready() == False) & (X4.ready() == False) & (X5.ready() == False) & (X6.ready() == False) & (X7.ready() == False) & (X8.ready() == False) :
-            1
-        print('*********************************Yayyyy**************************************', datetime.now())
-    
-    # 
-        #address_details = address_details.append([X1.get(timeout=9999999), X2.get(timeout=9999999),
-        #                                          X3.get(timeout=9999999), X4.get(timeout=9999999),
-        #                                          X5.get(timeout=9999999), X6.get(timeout=9999999),
-        #                                          X7.get(timeout=9999999), X8.get(timeout=9999999)], ignore_index=True)
-        address_details = address_details.append(X1.get(), ignore_index=True)
-        address_details = address_details.append(X2.get(), ignore_index=True)
-        address_details = address_details.append(X3.get(), ignore_index=True)
-        address_details = address_details.append(X4.get(), ignore_index=True)
-        address_details = address_details.append(X5.get(), ignore_index=True)
-        address_details = address_details.append(X6.get(), ignore_index=True)
-        address_details = address_details.append(X7.get(), ignore_index=True)
-        address_details = address_details.append(X8.get(), ignore_index=True)
-
-        print('-------------------------------DONE------------------')
     #address_details = pd.concat(address_details)
-    return final_list, address_details
+        list_labelled.append(already_labeled)
+    return final_list, list_labelled
  
 print(datetime.now())
 final_list= {}
@@ -135,20 +106,36 @@ total_addresses = []
 
 address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
     
-addresses = ['3KTx31NrNDgN48dDrDDL1qyQDAyY1W8vnL']
+addresses = ['1D27vWhZgLETSAitA4VGhphzjvcVwa6ygJ',
+'14qPaAAw8vNwRtVk82ddXVeVSQ1hpcVhu5',
+'12ceuQRXpyM2BzY9vXKPpnkQuu5W7j7sCe',
+'18hcVGPUyn1tqNoa7xMtgHXdj7FwNRC5K3',
+'1Q2TWz2xnHSFfAT2TBKYYwor85ztf4STjz',
+'1BUT4VtvsxfNkfmsZ2FNrEx12AyKhrwUyJ',
+'1JZQ1zhnYitgMNTRqjRVLntscy1cFnPNsz',
+'1PnfBQLpQhTymXoZVf4kGMDYACwoPVNxKX',
+'1At9sjtWqbYiu8qGwfu21wkQBSVhdrHov',
+'1NEoNMs43XmJ3XvEvwxQEzNFjQsmnt94NG',
+'1MomM9WaaEvMkGQQz4Gq5xYWEnaxyk9pHs',
+'1Cr9L3fupF8xKPCsxj2D4xhYqDumy8nEuE',
+'1GXavRMNX9rKgRt43pTJtVYKEbM9AJ4rCA',
+'19gAQv8YizsqruRPkBfoVpdL8jccnGauq8',
+'18zSbvhjLHXuHFzuWGqHdGRCAUBehRqckB',
+'1HqrMM4qnGbtsTqmjKZoWwzBCQbEyseVbo',
+'1PGRw6ozoXydPb2wf1AgG8mzg6H4xJcT9E',
+'17BymcHaGRbXGnEzR2m9woUYNf9FBPPJ2P',
+'1EGuNh3nBiFz4JQdob4brN292K3kzCbXvn']
         
 total_addresses.extend(addresses)
 
-final_list_temp, address_details_temp = address_postmortem(addresses)
-final_list = {**final_list, **final_list_temp}
+final_list, address_details = address_postmortem(addresses)
+test = []
+for i in range(len(address_details)):
+    for j in range(i, len(address_details)):
+        if(i!=j):
+            print(list(set(address_details[i]).intersection(address_details[j])))
+            test.extend(list(set(address_details[i]).intersection(address_details[j])))
 
-address_details = address_details.append(address_details_temp , ignore_index=True)
-
-###########################################################################################################
-address_details = address_details[~address_details['Address'].isin(total_addresses)]
-address_details = address_details.drop_duplicates()
-address_trans = address_details.sort_values(by=['Trans'], ascending=False)
-address_amount = address_details.sort_values(by=['Received'], ascending=False)
 
 
 #addresses = list(address_amount.iloc[0:10]['Address'])

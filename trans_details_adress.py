@@ -24,7 +24,7 @@ import threading
 print(datetime.now())
 pool = ThreadPool(processes=4)
 address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
-addresses = ['3GaaE9hHGRScqLFf55tqLj4YtdKCMsiKWQ']
+addresses = ['1K3E2CuGkkkcYE8kzBMPek1CxdxAQNuV9x']
 final_list = {}
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
 for addr in addresses:
@@ -37,7 +37,7 @@ for addr in addresses:
             recd = temp_addr.total_received/100000000
             sent = temp_addr.total_sent/100000000
             temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal, 'Received': recd, 'Sent': sent}
-            address_details = address_details.append(temp , ignore_index=True)   
+            #address_details = address_details.append(temp , ignore_index=True)   
         return address_details    
         
     main_address = blockchain.blockexplorer.get_address(addr)
@@ -59,6 +59,7 @@ for addr in addresses:
     already_labeled = []
     
     for i in main_address.transactions:
+        #print(i.hash)
         temp_list = []
         tran_id.append(i.hash)
         time.append(datetime.utcfromtimestamp(int(i.time)).strftime('%Y-%m-%d %H:%M:%S'))
@@ -117,7 +118,7 @@ for addr in addresses:
     while(X1.ready() == False) & (X2.ready() == False) & (X3.ready() == False) & (X4.ready() == False):
         1
     
-    print('-------------------------------DONE------------------', len(X1.get()), len(X2.get()), len(X3.get()), len(X4.get()))
+    print(datetime.now(), '-------------------------------DONE------------------', len(X1.get()), len(X2.get()), len(X3.get()), len(X4.get()))
 # 
     address_details = address_details.append([X1.get(), X2.get(), X3.get(), X4.get()], ignore_index=True)
     #address_details = pd.concat(address_details)
