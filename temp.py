@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Thu Nov 22 11:56:04 2018
-
 @author: agile
 """
 
@@ -39,6 +38,7 @@ def address_postmortem(addresses):
     address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
     list_labelled = []
     final_list = {}
+    prob_list = []
     for addr in addresses:
         main_address = blockchain.blockexplorer.get_address(addr)
         output_addrs={}
@@ -87,61 +87,52 @@ def address_postmortem(addresses):
             amt_addrs_out.remove(addr)
         except:
             1
-            
+        temp_prob_list = []    
         for i in freq_addrs_out, amt_addrs_out, freq_addrs_in, amt_addrs_in:
             for j in i:
+                temp_prob_list.append(j)
                 if j not in final_list.keys():
                     final_list[j]=0
                 final_list[j]= final_list[j]+1
 
         total_len = int(len(already_labeled)/8)
         print(len(already_labeled))
+        prob_list.append(temp_prob_list)
     #address_details = pd.concat(address_details)
         list_labelled.append(already_labeled)
-    return final_list, list_labelled
+    return prob_list, list_labelled
  
+def relationships(addresses):
+    match = []
+    for i in range(len(address_details)):
+        for j in range(i, len(address_details)):
+            if(i!=j):
+                #print(list(set(address_details[i]).intersection(address_details[j])))
+                match.append(list(set(address_details[i]).intersection(address_details[j])))
+    return match 
+    
 print(datetime.now())
 final_list= {}
 total_addresses = []
 
 address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
     
-addresses = ['3KTx31NrNDgN48dDrDDL1qyQDAyY1W8vnL',
-'36YAESJ7xyeWTgErHjDj64vmehr1gMaBwA',
-'3CUzNqog4GertpxJSwqq8n5oHjW2G8oMxt']
-        
-total_addresses.extend(addresses)
-
+addresses = ['1Q4mE3nUqwu8iyySHLZ7svgwdahnAw5b25'
+             ]
 final_list, address_details = address_postmortem(addresses)
-test = []
-for i in range(len(address_details)):
-    for j in range(i, len(address_details)):
-        if(i!=j):
-            print(list(set(address_details[i]).intersection(address_details[j])))
-            test.extend(list(set(address_details[i]).intersection(address_details[j])))
+    
+match_inputs = relationships(address_details)
+match_outputs = relationships(final_list)        
 
+addresses = []
+temp_addr = []
+temp_final = []
 
-matched = Counter(test)
-#addresses = list(address_amount.iloc[0:10]['Address'])
-#addresses.extend(list(address_trans.iloc[0:10]['Address']))
-#addresses = list(set(addresses))
-#total_addresses.extend(addresses)
-#
-#final_list_temp, address_details_temp = address_postmortem(addresses)
-#
-#final_list = {**final_list, **final_list_temp}
-#
-#address_details = address_details.append(address_details_temp , ignore_index=True)  
-#
-#address_details = address_details[~address_details['Address'].isin(total_addresses)]
-#
-#address_details = address_details.drop_duplicates()
-#address_trans = address_details.sort_values(by=['Trans'], ascending=False)
-#address_amount = address_details.sort_values(by=['Received'], ascending=False)
-##final_list = sorted(final_list.items(), key=lambda kv: kv[1], reverse=True)
-#
-#total_addresses.extend(list(address_amount.iloc[0:10]['Address']))
-#total_addresses.extend(list(address_trans.iloc[0:10]['Address']))
-#total_addresses = list(set(total_addresses))
+for i in range(1):
+    for j in address_details:
+        temp_final, temp_addr = address_postmortem(j)
+        for z in temp_addr:
+            addresses.extend(z)
+        
+
 print(datetime.now())
-

@@ -11,7 +11,7 @@ from datetime import datetime
 #est = blockchain.blockexplorer.get_address('1FCUQUYRCjxSfkNk5XnKx1xfNYvdZScrGt')
 #tt = test.transactions
 
-addr = '3Admys6487vaTxm3BRhFe62sD5NUoJVn9L'
+addr = '36AXKc8qfHuUUd4dGgryETPrkU3hDKSvvU'
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
 
 main_address = blockchain.blockexplorer.get_address(addr)
@@ -83,10 +83,8 @@ for i in freq_addrs_out, amt_addrs_out, freq_addrs_in, amt_addrs_in:
             final_list.append(j)
 
 final_list = (Counter(final_list)).most_common
+#print(final_list)
 
-
-
-
-
-
+#for i in len(final_list):
+#    print(i, blockchain.blockexplorer.get_address(i).total_received, blockchain.blockexplorer.get_address(i).n_tx, blockchain.blockexplorer.get_address(i).final_balance)
 

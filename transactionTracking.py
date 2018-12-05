@@ -7,6 +7,8 @@ Created on Sun Nov 11 21:54:38 2018
 """
 
 import pandas as pd
+from collections import Counter
+import blockchain
 
 tx_in = pd.read_csv('tx_in.csv', delimiter=';', names=['txid', 'hashPrevOut', 'indexPrevOut', 'scriptSig', 'sequence'])
 tx_out = pd.read_csv('tx_out.csv', delimiter=';', names=['txid', 'indexOut', 'value', 'scriptPubKey', 'address'])
@@ -44,8 +46,15 @@ def trans_forward(idx, send):
    except:
         return '', 'Blank'
     
-send = ''
-while(len(idx) != 0):
-    idx, send = trans_forward(idx, send)
-    
+#send = ''
+#while(len(idx) != 0):
+#    idx, send = trans_forward(idx, send)
+#wallet = '12ib7dApVFvg82TXKycWBNpN8kFyiAN1dr'    
+wallet = '5a28cf42207c6817308325a05b8bfe97eed5f26a76640240f29b3b1252d1b77c'
+total_txns = tx_out[tx_out['address'] == wallet]
+
+count_address = Counter(tx_out['address'])
+count_trans = Counter(tx_out['txid'])
+
+
     

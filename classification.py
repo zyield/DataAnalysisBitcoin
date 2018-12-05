@@ -12,129 +12,66 @@ import threading
 from collections import Counter
 from multiprocessing.pool import ThreadPool
 from datetime import datetime
+import pandas as pd
 
-pool = ThreadPool(processes=4)
-addr = '3KR3WFLeW2bdWu1BGFM6uwM3uTkeJG3xvm'
-#tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
-X = []
-l =[]
-def kmeans(i):
-    global X, l
-    temp_addr = blockchain.blockexplorer.get_address(i)
-    n_tx = temp_addr.n_tx
-    final_bal = temp_addr.final_balance/100000000
-    recd = temp_addr.total_received/100000000
-    sent = temp_addr.total_sent/100000000
-    X.append([(final_bal/n_tx), (recd/n_tx), (sent/n_tx), (n_tx)])
-    l.append(temp_addr.address)
 
-def kmeans2(i):
-    global test
-    temp_addr = blockchain.blockexplorer.get_address(i)
-    n_tx = temp_addr.n_tx
-    final_bal = temp_addr.final_balance/100000000
-    recd = temp_addr.total_received/100000000
-    sent = temp_addr.total_sent/100000000
-    test.append([(final_bal/n_tx), (recd/n_tx), (sent/n_tx), (n_tx)])
-
+def validation(i):
+    address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+    for j in i:
+        temp_addr = blockchain.blockexplorer.get_address(j)
+        n_tx = temp_addr.n_tx
+        final_bal = temp_addr.final_balance/100000000
+        recd = temp_addr.total_received/100000000
+        sent = temp_addr.total_sent/100000000
+        inputs = 0
+        outputs = 0
+        for z in temp_addr.transactions:
+            inputs = inputs + len(z.inputs)
+            outputs = outputs + len (outputs)
+        temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal/n_tx, 'Received': recd/n_tx, 'Sent': sent/n_tx}
+        address_details = address_details.append(temp , ignore_index=True)   
+    return address_details 
         
-    #clustering = KMeans(n_clusters = 2, random_state=5) # 3 for groups and 5 are random points
-    #clustering.fit(X)    
-    #print(clustering.labels_)
-        
-def get_addresses(addr):
-    main_address = blockchain.blockexplorer.get_address(addr)    
-    output_addrs={}
-    input_addrs={}
-    tran_id = []
-    
-    
-    already_labeled = []
-    
-    for i in main_address.transactions:
-        temp_list = []
-        tran_id.append(i.hash)
-        for j in i.inputs:
-            temp_list.append(j.address)
-        if (len(temp_list) > 1) & (addr in temp_list):
-            temp_list.remove(addr)
-            already_labeled.extend(temp_list)
-        elif addr in temp_list:
-            for x in i.outputs:
-                if x.address not in output_addrs.keys():
-                    output_addrs[x.address] = []
-                output_addrs[x.address].append(x.value)
-        else:
-            for j in i.inputs:
-                if j.address not in input_addrs.keys():
-                    input_addrs[j.address] = []
-                input_addrs[j.address].append(j.value)
-                
-    already_labeled = list(set(already_labeled))     
-            
-    for i in already_labeled:
-        if i in input_addrs.keys():
-            input_addrs.pop(i, None)
-        if i in output_addrs.keys():
-            output_addrs.pop(i, None)
-    
-        
-    freq_addrs_in = sorted(input_addrs, key=lambda k: len(input_addrs[k]), reverse=True)
-    freq_addrs_out = sorted(output_addrs, key=lambda k: len(output_addrs[k]), reverse=True)
-    
-    amt_addrs_in = {key: sum(input_addrs[key]) for key in input_addrs}
-    amt_addrs_in = sorted(amt_addrs_in, key=lambda x: amt_addrs_in[x], reverse=True)
-    amt_addrs_out = {key: sum(output_addrs[key]) for key in output_addrs}
-    amt_addrs_out = sorted(amt_addrs_out, key=lambda x: amt_addrs_out[x], reverse=True)
-    
-    try:
-        freq_addrs_in.remove(addr)
-        amt_addrs_in.remove(addr)
-        freq_addrs_out.remove(addr)
-        amt_addrs_out.remove(addr)
-    except:
-        1
-    final_list = {}
-    for i in freq_addrs_out, amt_addrs_out, freq_addrs_in, amt_addrs_in:
-    #    try:
-    #        for j in i[0:10]:
-    #            final_list.append(j)
-    #    except:
-    #        for j in i:
-    #            final_list.append(j)
-        for j in i:
-            if j not in final_list.keys():
-                final_list[j]=0
-            final_list[j]= final_list[j]+1
 
-    final_list = sorted(final_list.items(), key=lambda kv: kv[1], reverse=True)
-    
-    return final_list, already_labeled
-#final_list = (Counter(final_list)).most_common
-#print(final_list)
+already_labeled = pd.read_csv('btc_wallets.csv')
+already_labeled = list(already_labeled['address'])
 
-#for i in len(final_list):
-#    print(i, blockchain.blockexplorer.get_address(i).total_received, blockchain.blockexplorer.get_address(i).n_tx, blockchain.blockexplorer.get_address(i).final_balance)
-#label(already_labeled)
-
-final_list, already_labeled = get_addresses(addr)
-test = []
-print(datetime.now())
-#for i in already_labeled:
-#    kmeans2(i)
-#print('***********************************DONE******************************************')
-print(datetime.now())
-for i in range(0, len(already_labeled)-3, 4):
-    X1 = pool.apply_async(kmeans, [already_labeled[i]])
-    X2 = pool.apply_async(kmeans, [already_labeled[i+1]])
-    X3 = pool.apply_async(kmeans, [already_labeled[i+2]])
-    X4 = pool.apply_async(kmeans, [already_labeled[i+3]])
-
-while(X4.ready() == False):
+pool = ThreadPool(processes=8)
+total_len = int(len(already_labeled)/8)
+print(len(already_labeled))        
+X1 = pool.apply_async(validation, [already_labeled[0:total_len]])
+X2 = pool.apply_async(validation, [already_labeled[total_len:(total_len*2)]])
+X3 = pool.apply_async(validation, [already_labeled[(total_len*2):(total_len*3)]])
+X4 = pool.apply_async(validation, [already_labeled[(total_len*3):(total_len*4)]])
+X5 = pool.apply_async(validation, [already_labeled[(total_len*4):(total_len*5)]])
+X6 = pool.apply_async(validation, [already_labeled[(total_len*5):(total_len*6)]])
+X7 = pool.apply_async(validation, [already_labeled[(total_len*6):(total_len*7)]])
+X8 = pool.apply_async(validation, [already_labeled[(total_len*7):]])
+while(X1.ready() == False) & (X2.ready() == False) & (X3.ready() == False) & (X4.ready() == False) & (X5.ready() == False) & (X6.ready() == False) & (X7.ready() == False) & (X8.ready() == False) :
     1
+print('*********************************Yayyyy**************************************', datetime.now())
+
+# 
+#address_details = address_details.append([X1.get(timeout=9999999), X2.get(timeout=9999999),
+#                                          X3.get(timeout=9999999), X4.get(timeout=9999999),
+#                                          X5.get(timeout=9999999), X6.get(timeout=9999999),
+#                                          X7.get(timeout=9999999), X8.get(timeout=9999999)], ignore_index=True)
+X = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+
+X = X.append(X1.get(), ignore_index=True)
+X = X.append(X2.get(), ignore_index=True)
+X = X.append(X3.get(), ignore_index=True)
+X = X.append(X4.get(), ignore_index=True)
+X = X.append(X5.get(), ignore_index=True)
+X = X.append(X6.get(), ignore_index=True)
+X = X.append(X7.get(), ignore_index=True)
+X = X.append(X8.get(), ignore_index=True)
 
 print(datetime.now())
 print('--------------------------------')
+X_ = X
+X = X.drop(['Address', 'Trans'], axis=1)
 clustering = KMeans(n_clusters = 2, random_state=5) # 3 for groups and 5 are random points
 clustering.fit(X)    
-print(clustering.labels_)
+
+pred_labels = clustering.labels_

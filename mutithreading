@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 21 15:37:40 2018
+
+@author: agile
+"""
+
+import threading
+from multiprocessing.pool import ThreadPool
+import time
+#def func1(count):
+#    return count+100
+#
+##test = []
+##def first():
+##    x1=0
+##    for i in range(10):
+##        x1 = threading.Thread(target=func1, args=[i])
+##        x1.start()
+##        test.append(x1)
+##    print(x1.join())
+##first()
+#
+#pool = ThreadPool(processes=4)
+#for i in range(100):
+#    test = pool.apply_async(func1, (i+2))
+#
+#print(test.get())
+
+X = []
+def foo(bar):
+    global X
+    if bar%2 == 0:
+        time.sleep(2)
+    X.append(bar+1)
+    return (bar+1)
+
+pool = ThreadPool(processes=4)
+test = []
+for i in range(10):
+    async_result = pool.apply_async(foo, [i])
+    async_result2 = pool.apply_async(foo, [i+100])# tuple of args for foo
+    print('===========')
+    
+# do some other stuff in the main process
+
+#return_val = async_result.get()  # get the return value from your function.
+
+print(test)
+while(async_result.successful() == True):
+    print('waiting')
+    
+
+
+#for i in range(0, 80, 4):
+#    print(i)
+#    print(i+1)
+#    print(i+2)
+#    print(i+3)
