@@ -13,10 +13,10 @@ from collections import Counter
 from multiprocessing.pool import ThreadPool
 from datetime import datetime
 import pandas as pd
-
+import matplotlib.pyplot as plt
 
 def validation(i):
-    address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+    address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent', 'ins', 'outs'])
     for j in i:
         temp_addr = blockchain.blockexplorer.get_address(j)
         n_tx = temp_addr.n_tx
@@ -25,16 +25,29 @@ def validation(i):
         sent = temp_addr.total_sent/100000000
         inputs = 0
         outputs = 0
-        for z in temp_addr.transactions:
-            inputs = inputs + len(z.inputs)
-            outputs = outputs + len (outputs)
-        temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal/n_tx, 'Received': recd/n_tx, 'Sent': sent/n_tx}
+        for trans in temp_addr.transactions:
+            flag = 0
+            for ins in trans.inputs:
+                flag = flag+1
+                try:
+                    if j in ins.address:
+                        outputs = outputs+1
+                        flag=0
+                        break
+                except:
+                    1
+            if flag != 0:
+                inputs = inputs+1
+                
+        
+        temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal, 'Received': recd, 'Sent': sent, 'ins': inputs, 'outs': outputs}
         address_details = address_details.append(temp , ignore_index=True)   
     return address_details 
         
 
 already_labeled = pd.read_csv('btc_wallets.csv')
 already_labeled = list(already_labeled['address'])
+#already_labeled = ['14yuCHnhjQudtv2CVypSbrxB7qxr3Hsote']
 
 pool = ThreadPool(processes=8)
 total_len = int(len(already_labeled)/8)
@@ -56,7 +69,7 @@ print('*********************************Yayyyy**********************************
 #                                          X3.get(timeout=9999999), X4.get(timeout=9999999),
 #                                          X5.get(timeout=9999999), X6.get(timeout=9999999),
 #                                          X7.get(timeout=9999999), X8.get(timeout=9999999)], ignore_index=True)
-X = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+X = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent', 'ins', 'outs'])
 
 X = X.append(X1.get(), ignore_index=True)
 X = X.append(X2.get(), ignore_index=True)
@@ -70,7 +83,11 @@ X = X.append(X8.get(), ignore_index=True)
 print(datetime.now())
 print('--------------------------------')
 X_ = X
-X = X.drop(['Address', 'Trans'], axis=1)
+X['Final bal'] = X['Final bal'] / X['Trans']
+X['Sent'] = X['Sent'] / X['Received']
+X['outs'] = X['outs'] / X['ins']
+X = X.drop(['Address', 'Trans', 'Received', 'ins'], axis=1)
+
 clustering = KMeans(n_clusters = 2, random_state=5) # 3 for groups and 5 are random points
 clustering.fit(X)    
 

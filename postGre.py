@@ -22,7 +22,7 @@ def create_table():
     conn.commit()
 
 def read_from_db():
-    cur.execute("SELECT * FROM label_wallets")
+    cur.execute("SELECT * FROM label_wallets WHERE address='16gTeNGieqSAB9K2gbGQMfXFC4QUvNPZ4K'")
     #c.execute("SELECT * FROM stuffsToPlot WHERE value=3 AND keyword='Python'")
     #c.execute("SELECT unix, datestamp FROM stuffsToPlot WHERE value=8 AND keyword='Python'")
     #data = c.fetchall()
@@ -39,18 +39,20 @@ def dynamic_data_entry(address):
               (wallet_name, address, type_addr))
     conn.commit()
 
-def delete():
-    cur.execute("DELETE FROM label_wallets WHERE wallet_name = 'allcoin'")
+def delete(address):
+    cur.execute("DELETE FROM label_wallets WHERE address = address")
     conn.commit()
     
     #c.execute("SELECT * FROM stuffsToPlot WHERE value=3")
     #for data in c.fetchall():
         #print(data)
+#read_from_db()
 #create_table()
+for i in total_addresses:
+    dynamic_data_entry(i)
 #for i in total_addresses:
-#    dynamic_data_entry(i)
-#delete()
-read_from_db()
+#    delete(i)
+#print(len(read_from_db()))
 if(conn):
     cur.close()
     conn.close()

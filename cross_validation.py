@@ -106,9 +106,10 @@ total_addresses = []
 
 address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
     
-addresses = ['3KTx31NrNDgN48dDrDDL1qyQDAyY1W8vnL',
-'36YAESJ7xyeWTgErHjDj64vmehr1gMaBwA',
-'3CUzNqog4GertpxJSwqq8n5oHjW2G8oMxt']
+addresses = ['1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g',
+'1PrjPNmtfYkEmnX1DCyu2A1Smg29Ke1maP',
+'1DivaVLgz7AEsnGMD41gwuesgBRmHhUiVr',
+'3D2oetdNuZUqQHPJmcMDDHYoqkyNVsFk9r']
         
 total_addresses.extend(addresses)
 
