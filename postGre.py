@@ -22,17 +22,17 @@ def create_table():
     conn.commit()
 
 def read_from_db():
-    cur.execute("SELECT * FROM label_wallets WHERE address='16gTeNGieqSAB9K2gbGQMfXFC4QUvNPZ4K'")
+    cur.execute("SELECT address FROM label_wallets WHERE wallet_name='allcoin'")
     #c.execute("SELECT * FROM stuffsToPlot WHERE value=3 AND keyword='Python'")
     #c.execute("SELECT unix, datestamp FROM stuffsToPlot WHERE value=8 AND keyword='Python'")
     #data = c.fetchall()
     #print(data)                    #getting the data all at once
     
     for data in cur.fetchall():
-        print(data)
+        print(data[0])
 
 def dynamic_data_entry(address):
-    wallet_name = 'allcoin'
+    wallet_name = 'bitfinex'
     #address = '1FyXSWQsesD4jM35i62wVLu92jVvuMXtND'
     type_addr = 'bitcoin'
     cur.execute("INSERT INTO label_wallets (wallet_name, address, type) VALUES (%s, %s, %s)",

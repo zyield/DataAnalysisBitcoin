@@ -14,6 +14,22 @@ from multiprocessing.pool import ThreadPool
 from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
+import psycopg2
+
+
+try:
+    conn = psycopg2.connect(dbname='chainspark_data', user='chaispark_admin', host='db-nddw4l3bc3tfwslpm46rcbae5e.coegqtcbi3dz.us-west-2.rds.amazonaws.com', password='jYjFkgRqpGhNQoKpWF3KgDNw')
+except Exception as e:
+    print ("I am unable to connect to the database", str(e))
+    
+cur = conn.cursor()
+
+def read_from_db():
+    cur.execute("SELECT address FROM label_wallets WHERE wallet_name='bitfinex'")
+    temp = []
+    for data in cur.fetchall():
+        temp.append(data[0])
+    return temp
 
 def validation(i):
     address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent', 'ins', 'outs'])
@@ -45,9 +61,11 @@ def validation(i):
     return address_details 
         
 
-already_labeled = pd.read_csv('btc_wallets.csv')
-already_labeled = list(already_labeled['address'])
+#already_labeled = pd.read_csv('btc_wallets.csv')
+#already_labeled = list(already_labeled['address'])
 #already_labeled = ['14yuCHnhjQudtv2CVypSbrxB7qxr3Hsote']
+already_labeled = read_from_db()
+already_labeled = already_labeled[0:10000]
 
 pool = ThreadPool(processes=8)
 total_len = int(len(already_labeled)/8)
@@ -71,14 +89,14 @@ print('*********************************Yayyyy**********************************
 #                                          X7.get(timeout=9999999), X8.get(timeout=9999999)], ignore_index=True)
 X = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent', 'ins', 'outs'])
 
-X = X.append(X1.get(), ignore_index=True)
-X = X.append(X2.get(), ignore_index=True)
-X = X.append(X3.get(), ignore_index=True)
-X = X.append(X4.get(), ignore_index=True)
-X = X.append(X5.get(), ignore_index=True)
-X = X.append(X6.get(), ignore_index=True)
-X = X.append(X7.get(), ignore_index=True)
-X = X.append(X8.get(), ignore_index=True)
+X = X.append(X1.get(timeout=999999), ignore_index=True)
+X = X.append(X2.get(timeout=999999), ignore_index=True)
+X = X.append(X3.get(timeout=999999), ignore_index=True)
+X = X.append(X4.get(timeout=999999), ignore_index=True)
+X = X.append(X5.get(timeout=999999), ignore_index=True)
+X = X.append(X6.get(timeout=999999), ignore_index=True)
+X = X.append(X7.get(timeout=999999), ignore_index=True)
+X = X.append(X8.get(timeout=999999), ignore_index=True)
 
 print(datetime.now())
 print('--------------------------------')
@@ -88,7 +106,11 @@ X['Sent'] = X['Sent'] / X['Received']
 X['outs'] = X['outs'] / X['ins']
 X = X.drop(['Address', 'Trans', 'Received', 'ins'], axis=1)
 
-clustering = KMeans(n_clusters = 2, random_state=5) # 3 for groups and 5 are random points
+clustering = KMeans(n_clusters = 3, random_state=5) # 3 for groups and 5 are random points
 clustering.fit(X)    
 
 pred_labels = clustering.labels_
+
+if(conn):
+    cur.close()
+    conn.close()
