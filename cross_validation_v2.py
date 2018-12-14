@@ -94,7 +94,7 @@ def address_varification(addresses, know_list):
  
     
 print(datetime.now())
-final_list= {}
+final_list= []
 total_addresses = []
 
 #address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
@@ -127,6 +127,10 @@ test2.extend(list(test['from_address']))
 test2.extend(list(test['to_address']))
 test2 = list(set(test2))
 proof = address_varification(test2, addresses)
+
+for i in range(len(proof)):
+    if proof[i] == 1:
+        final_list.append(test2[i])
 
 print(datetime.now())
 

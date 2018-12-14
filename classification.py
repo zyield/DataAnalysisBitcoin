@@ -61,11 +61,12 @@ def validation(i):
     return address_details 
         
 
-#already_labeled = pd.read_csv('btc_wallets.csv')
-#already_labeled = list(already_labeled['address'])
+already_labeled = pd.read_csv('bitfinex.csv')
+already_labeled = list(already_labeled['address'])
+already_labeled = already_labeled[-1000:]
 #already_labeled = ['14yuCHnhjQudtv2CVypSbrxB7qxr3Hsote']
-already_labeled = read_from_db()
-already_labeled = already_labeled[0:10000]
+#already_labeled = read_from_db()
+#already_labeled = already_labeled[0:10000]
 
 pool = ThreadPool(processes=8)
 total_len = int(len(already_labeled)/8)
@@ -101,12 +102,17 @@ X = X.append(X8.get(timeout=999999), ignore_index=True)
 print(datetime.now())
 print('--------------------------------')
 X_ = X
-X['Final bal'] = X['Final bal'] / X['Trans']
-X['Sent'] = X['Sent'] / X['Received']
-X['outs'] = X['outs'] / X['ins']
-X = X.drop(['Address', 'Trans', 'Received', 'ins'], axis=1)
 
-clustering = KMeans(n_clusters = 3, random_state=5) # 3 for groups and 5 are random points
+temp_address = X[X['Trans'] <= 2]
+X = X[(X['Trans'] > 2) & (X['Received'] > 1000)]
+X = X.reset_index()
+X['Received'] = X['Received'] / X['ins']
+X['Sent'] = X['Sent'] / X['outs']
+X['outs'] = X['outs'] / X['ins']
+addr = list(X['Address'])
+X = X.drop(['Address', 'Trans', 'Final bal', 'ins', 'index'], axis=1)
+
+clustering = KMeans(n_clusters = 3, random_state=7) # 3 for groups and 5 are random points
 clustering.fit(X)    
 
 pred_labels = clustering.labels_

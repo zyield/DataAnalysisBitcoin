@@ -11,7 +11,7 @@ from collections import Counter, OrderedDict
 from datetime import datetime
 from multiprocessing.pool import ThreadPool
 import pandas as pd
-import threading
+import csv
 import itertools
 import psycopg2
 #print(statistics.get().blocks_size)
@@ -24,31 +24,31 @@ import psycopg2
 #tt = test.transactions
 
 #tt = blockchain.blockexplorer.get_tx('6c62072cd17410c6b17a36de9119bef59d38044647e3908d5da720d24b063840')
-try:
-    conn = psycopg2.connect(dbname='chainspark_data', user='chaispark_admin', host='db-nddw4l3bc3tfwslpm46rcbae5e.coegqtcbi3dz.us-west-2.rds.amazonaws.com', password='jYjFkgRqpGhNQoKpWF3KgDNw')
-except Exception as e:
-    print ("I am unable to connect to the database", str(e))
-    
-cur = conn.cursor()
-def read_from_db():
-    cur.execute("SELECT address FROM label_wallets")
-    #c.execute("SELECT * FROM stuffsToPlot WHERE value=3 AND keyword='Python'")
-    #c.execute("SELECT unix, datestamp FROM stuffsToPlot WHERE value=8 AND keyword='Python'")
-    #data = c.fetchall()
-    #print(data)                    #getting the data all at once
-    addr_list = []
-    for data in cur.fetchall():
-        addr_list.append(data[0])
-    
-    return addr_list
-
-def dynamic_data_entry(address):
-    wallet_name = 'allcoin'
-    #address = '1FyXSWQsesD4jM35i62wVLu92jVvuMXtND'
-    type_addr = 'bitcoin'
-    cur.execute("INSERT INTO label_wallets (wallet_name, address, type) VALUES (%s, %s, %s)",
-              (wallet_name, address, type_addr))
-    conn.commit()
+#try:
+#    conn = psycopg2.connect(dbname='chainspark_data', user='chaispark_admin', host='db-nddw4l3bc3tfwslpm46rcbae5e.coegqtcbi3dz.us-west-2.rds.amazonaws.com', password='jYjFkgRqpGhNQoKpWF3KgDNw')
+#except Exception as e:
+#    print ("I am unable to connect to the database", str(e))
+#    
+#cur = conn.cursor()
+#def read_from_db():
+#    cur.execute("SELECT address FROM label_wallets")
+#    #c.execute("SELECT * FROM stuffsToPlot WHERE value=3 AND keyword='Python'")
+#    #c.execute("SELECT unix, datestamp FROM stuffsToPlot WHERE value=8 AND keyword='Python'")
+#    #data = c.fetchall()
+#    #print(data)                    #getting the data all at once
+#    addr_list = []
+#    for data in cur.fetchall():
+#        addr_list.append(data[0])
+#    
+#    return addr_list
+#
+#def dynamic_data_entry(address):
+#    wallet_name = 'allcoin'
+#    #address = '1FyXSWQsesD4jM35i62wVLu92jVvuMXtND'
+#    type_addr = 'bitcoin'
+#    cur.execute("INSERT INTO label_wallets (wallet_name, address, type) VALUES (%s, %s, %s)",
+#              (wallet_name, address, type_addr))
+#    conn.commit()
     
 def validation(i):
     address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
@@ -110,13 +110,7 @@ def address_postmortem(addresses):
                             temp_list.remove(addr)
                             already_labeled.extend(temp_list)
                     
-        already_labeled = list(set(already_labeled))     
-                
-        for i in already_labeled:
-            if i in input_addrs.keys():
-                input_addrs.pop(i, None)
-            if i in output_addrs.keys():
-                output_addrs.pop(i, None)
+        already_labeled = list(set(already_labeled))
 
         print(len(already_labeled))
         list_labelled.append(already_labeled)
@@ -138,20 +132,24 @@ total_addresses = []
 
 address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
     
-addresses = ['1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g',
-'1PrjPNmtfYkEmnX1DCyu2A1Smg29Ke1maP',
-'1DivaVLgz7AEsnGMD41gwuesgBRmHhUiVr',
-'3D2oetdNuZUqQHPJmcMDDHYoqkyNVsFk9r']
+#addresses = ['1Kr6QSydW9bFQG1mXiPNNu6WpJGmUa9i1g',
+#'1PrjPNmtfYkEmnX1DCyu2A1Smg29Ke1maP',
+#'1DivaVLgz7AEsnGMD41gwuesgBRmHhUiVr',
+#'3D2oetdNuZUqQHPJmcMDDHYoqkyNVsFk9r']
+addresses = pd.read_csv('bittrex.csv')
+addresses = list(addresses['address'])
 #addresses = read_from_db()
 total_addresses.extend(addresses)
 final_list, address_details = address_postmortem(addresses)
-
-#match = relationships(address_details)
     
 for i in range(3):
     temp = list(itertools.chain.from_iterable(address_details))
     temp = set(temp) - set(total_addresses)
     temp = list(temp)
+    with open('bittrex.csv', 'a') as fd:
+        wr = csv.writer(fd, dialect='excel', delimiter="\n")
+        wr.writerow(temp)
+    fd.close()
     total_addresses.extend(temp)
     print('------------------------------------------', len(temp))
     final_list, address_details = address_postmortem(temp)            
