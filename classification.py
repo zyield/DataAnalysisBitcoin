@@ -15,6 +15,7 @@ from datetime import datetime
 import pandas as pd
 import matplotlib.pyplot as plt
 import psycopg2
+import math
 
 
 try:
@@ -34,39 +35,55 @@ def read_from_db():
 def validation(i):
     address_details = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent', 'ins', 'outs'])
     for j in i:
-        temp_addr = blockchain.blockexplorer.get_address(j)
-        n_tx = temp_addr.n_tx
-        final_bal = temp_addr.final_balance/100000000
-        recd = temp_addr.total_received/100000000
-        sent = temp_addr.total_sent/100000000
-        inputs = 0
-        outputs = 0
-        for trans in temp_addr.transactions:
-            flag = 0
-            for ins in trans.inputs:
-                flag = flag+1
-                try:
-                    if j in ins.address:
-                        outputs = outputs+1
-                        flag=0
-                        break
-                except:
-                    1
-            if flag != 0:
-                inputs = inputs+1
-                
-        
-        temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal, 'Received': recd, 'Sent': sent, 'ins': inputs, 'outs': outputs}
-        address_details = address_details.append(temp , ignore_index=True)   
+        try:
+            temp_addr = blockchain.blockexplorer.get_address(j)
+            n_tx = temp_addr.n_tx
+            final_bal = temp_addr.final_balance/100000000
+            recd = temp_addr.total_received/100000000
+            sent = temp_addr.total_sent/100000000
+            inputs = 0
+            outputs = 0
+            for trans in temp_addr.transactions:
+                flag = 0
+                for ins in trans.inputs:
+                    flag = flag+1
+                    try:
+                        if j in ins.address:
+                            outputs = outputs+1
+                            flag=0
+                            break
+                    except:
+                        1
+                if flag != 0:
+                    inputs = inputs+1
+                    
+            
+            temp = {'Address': j, 'Trans': n_tx, 'Final bal': final_bal, 'Received': recd, 'Sent': sent, 'ins': inputs, 'outs': outputs}
+            address_details = address_details.append(temp , ignore_index=True)   
+        except Exception as e:
+            print(e, j)
     return address_details 
         
 
-already_labeled = pd.read_csv('bitfinex.csv')
-already_labeled = list(already_labeled['address'])
-already_labeled = already_labeled[-1000:]
+#already_labeled = pd.read_csv('bitfinex.csv')
+#already_labeled = list(already_labeled['address'])
+#already_labeled = already_labeled[-1000:]
 #already_labeled = ['14yuCHnhjQudtv2CVypSbrxB7qxr3Hsote']
 #already_labeled = read_from_db()
 #already_labeled = already_labeled[0:10000]
+
+test = pd.read_csv('btc_transactions.csv')
+#test = test.iloc[0:200, :]
+test2=[]
+test2.extend(list(test['from_address']))
+test2.extend(list(test['to_address']))
+test2 = list(set(test2))
+
+for i in test2:
+    if len(i) > 34:
+        test2.remove(i)
+
+already_labeled = test2
 
 pool = ThreadPool(processes=8)
 total_len = int(len(already_labeled)/8)
@@ -101,18 +118,33 @@ X = X.append(X8.get(timeout=999999), ignore_index=True)
 
 print(datetime.now())
 print('--------------------------------')
+
+X = pd.read_csv('cs.csv')
+X = X.drop(['Unnamed: 0'], axis=1)
 X_ = X
 
-temp_address = X[X['Trans'] <= 2]
-X = X[(X['Trans'] > 2) & (X['Received'] > 1000)]
+intermediate_address = X[(X['Trans'] <= 5) & (X['Final bal'] <= 10)]
+X.drop(intermediate_address.index.values, axis=0, inplace=True)
+still_waiting = X[X['Trans'] == 1]
+X.drop(still_waiting.index.values, axis=0, inplace=True)
+#others = X[X['Received'] <= 50]
+#X.drop(others.index.values, axis=0, inplace=True)
+cold_store = X[abs(X['Final bal'] - X['Received']) <= 10]
+X.drop(cold_store.index.values, axis=0, inplace=True)
+#X = X[(X['Trans'] > 2) & (X['Received'] > 200)]
+#X1 = X[X['Final bal'] <= 1]
+#X.drop(X1.index.values, axis=0, inplace=True)
+ 
 X = X.reset_index()
-X['Received'] = X['Received'] / X['ins']
-X['Sent'] = X['Sent'] / X['outs']
-X['outs'] = X['outs'] / X['ins']
-addr = list(X['Address'])
-X = X.drop(['Address', 'Trans', 'Final bal', 'ins', 'index'], axis=1)
+#X['Final bal'] = ((X['Final bal']) / (X['Trans']))
+X['Received'] = (X['Received'] - X['Trans']) / (X['Trans']+X['Received'])
+#X['Sent'] = (X['Sent']) / (X['Sent']+X['Received'])
+#X['outs'] = ((X['ins'] - X['outs']) / (X['outs']+X['ins']))
 
-clustering = KMeans(n_clusters = 3, random_state=7) # 3 for groups and 5 are random points
+addr = list(X['Address'])
+X = X.drop(['Address', 'Trans', 'ins', 'index', 'outs', 'Sent', 'Final bal'], axis=1)
+
+clustering = KMeans(n_clusters = 2, random_state=11) # 3 for groups and 5 are random points
 clustering.fit(X)    
 
 pred_labels = clustering.labels_

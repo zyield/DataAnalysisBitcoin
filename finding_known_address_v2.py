@@ -105,10 +105,14 @@ def address_postmortem(addresses):
                     for i in main_address.transactions:
                         temp_list = []
                         for j in i.inputs:
-                            temp_list.append(j.address)
+                            try:
+                                temp_list.append(j.address)
+                            except:
+                                print(j)
                         if (len(temp_list) > 1) & (addr in temp_list):
                             temp_list.remove(addr)
-                            already_labeled.extend(temp_list)
+
+                                
                     
         already_labeled = list(set(already_labeled))
 
