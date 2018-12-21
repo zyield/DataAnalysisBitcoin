@@ -13,7 +13,7 @@ import pandas as pd
 import math
 import pickle
 import warnings
-
+from multiprocessing.pool import ThreadPool
 
 warnings.filterwarnings('ignore')
 
@@ -38,7 +38,33 @@ def label_address(X):
     clustering = pickle.load(open("cluster.sav", 'rb'))
     print(datetime.now())
     print('--------------------------------')
-    X = validation(X)
+    pool = ThreadPool(processes=8)
+    total_len = int(len(X)/8)
+    print(len(X))        
+    X1 = pool.apply_async(validation, [X[0:total_len]])
+    X2 = pool.apply_async(validation, [X[total_len:(total_len*2)]])
+    X3 = pool.apply_async(validation, [X[(total_len*2):(total_len*3)]])
+    X4 = pool.apply_async(validation, [X[(total_len*3):(total_len*4)]])
+    X5 = pool.apply_async(validation, [X[(total_len*4):(total_len*5)]])
+    X6 = pool.apply_async(validation, [X[(total_len*5):(total_len*6)]])
+    X7 = pool.apply_async(validation, [X[(total_len*6):(total_len*7)]])
+    X8 = pool.apply_async(validation, [X[(total_len*7):]])
+    while(X1.ready() == False) & (X2.ready() == False) & (X3.ready() == False) & (X4.ready() == False) & (X5.ready() == False) & (X6.ready() == False) & (X7.ready() == False) & (X8.ready() == False) :
+        1
+    print('*********************************Yayyyy**************************************', datetime.now())
+    X = pd.DataFrame(columns=['Address', 'Trans', 'Final bal', 'Received', 'Sent'])
+    
+    X = pd.concat([X, X1.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X2.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X3.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X4.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X5.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X6.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X7.get(timeout=999999)], ignore_index=True)
+    X = pd.concat([X, X8.get(timeout=999999)], ignore_index=True)
+    print(datetime.now())
+    print('--------------------------------')
+    #X = validation(X)
     intermediate_address = X[(X['Trans'] <= 5) & (X['Final bal'] <= 10)]
     intermediate_address.Sent = 'intermediate address'
     X.drop(intermediate_address.index.values, axis=0, inplace=True)
