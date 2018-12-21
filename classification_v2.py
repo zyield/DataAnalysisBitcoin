@@ -118,5 +118,5 @@ def label_address(X):
 
 final_labels = label_address(['37k5U5xQJkojFHkHVgrY7Dq7xtJJNSqVid', '17YyZSNFt31pzGXfZtrzs7Y5Nd56rG2uU5', 
                 '39vi392JLo4ksHUQrajddPJoK1wH8rmUyS', '1CSvNmJ4kCgQr9ubPaerrdhx7yUdLgKyKo',
-                '1JNW9w4kPiiBgaEW12xT5kiHxQgZxFRTQ4'])
+                '1JNW9w4kPiiBgaEW12xT5kiHxQgZxFRTQ4', '1N52wHoVR79PMDishab2XmRHsbekCdGquK'])
 print(final_labels)
