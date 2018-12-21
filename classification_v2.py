@@ -73,7 +73,7 @@ def label_address(X):
         still_waiting = X[X['Trans'] == 1]
         still_waiting.Sent = 'still waiting'
         X.drop(still_waiting.index.values, axis=0, inplace=True)
-        cold_store = X[abs(X['Final bal'] - X['Received']) <= 10]
+        cold_store = X[(abs(X['Final bal'] - X['Received']) <= 10) & (X['Received']>100)]
         cold_store.Sent = 'Cold Storage'
         X.drop(cold_store.index.values, axis=0, inplace=True)
         formula_address = [] 
@@ -119,5 +119,5 @@ def label_address(X):
 
 
 
-final_labels = label_address(['37auhiA8ZGpnjHzvsojtzdsikojG9CWWca', '36VxH5w4Q4aPKtcxes8EaKr1iS6o2pq4j3', '3N5Kzco8t2C5ou3aZevHQxpLJXfyMqmRPj'])
+final_labels = label_address(['3MRaLSzdFtMMsqvF95a8fBmqx252rNqCQA'])
 print(final_labels)
