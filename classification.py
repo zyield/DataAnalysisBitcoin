@@ -134,18 +134,27 @@ X.drop(cold_store.index.values, axis=0, inplace=True)
 #X = X[(X['Trans'] > 2) & (X['Received'] > 200)]
 #X1 = X[X['Final bal'] <= 1]
 #X.drop(X1.index.values, axis=0, inplace=True)
- 
+formula_address = [] 
+for i in range(len(X)):
+    rec = str(int(X.iloc[i]['Received']))
+    rec = len(rec)
+    trans = str(X.iloc[i]['Trans'])
+    trans = len(trans)
+    max_val = max([rec, trans])
+    min_val = min([rec, trans])
+    calc = min_val - (math.e/max_val)
+    formula_address.append(calc)
 X = X.reset_index()
 #X['Final bal'] = ((X['Final bal']) / (X['Trans']))
-X['Received'] = (X['Received'] - X['Trans']) / (X['Trans']+X['Received'])
-#X['Sent'] = (X['Sent']) / (X['Sent']+X['Received'])
+X['Received'] = abs(X['Received'] - X['Trans']) / (X['Trans']+X['Received'])
+X['ins'] = pd.Series(formula_address)
 #X['outs'] = ((X['ins'] - X['outs']) / (X['outs']+X['ins']))
 
 addr = list(X['Address'])
-X = X.drop(['Address', 'Trans', 'ins', 'index', 'outs', 'Sent', 'Final bal'], axis=1)
+#X = X.drop(['Address', 'Trans', 'index', 'outs', 'Sent', 'Final bal'], axis=1)
 
-clustering = KMeans(n_clusters = 2, random_state=11) # 3 for groups and 5 are random points
-clustering.fit(X)    
+clustering = KMeans(n_clusters = 3, random_state=7) # 3 for groups and 5 are random points
+clustering.fit(X[['Received', 'ins']])    
 
 pred_labels = clustering.labels_
 
