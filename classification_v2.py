@@ -65,34 +65,36 @@ def label_address(X):
     print(datetime.now())
     print('--------------------------------')
     #X = validation(X)
-    intermediate_address = X[(X['Trans'] <= 5) & (X['Final bal'] <= 10)]
-    intermediate_address.Sent = 'intermediate address'
-    X.drop(intermediate_address.index.values, axis=0, inplace=True)
-    
-    still_waiting = X[X['Trans'] == 1]
-    still_waiting.Sent = 'still waiting'
-    X.drop(still_waiting.index.values, axis=0, inplace=True)
-    cold_store = X[abs(X['Final bal'] - X['Received']) <= 10]
-    cold_store.Sent = 'Cold Storage'
-    X.drop(cold_store.index.values, axis=0, inplace=True)
-    formula_address = [] 
-    for i in range(len(X)):
-        rec = str(int(X.iloc[i]['Received']))
-        rec = len(rec)
-        trans = str(X.iloc[i]['Trans'])
-        trans = len(trans)
-        max_val = max([rec, trans])
-        min_val = min([rec, trans])
-        calc = min_val - (math.e/max_val)
-        formula_address.append(calc)
-    X = X.reset_index()
-    
-    X['Received'] = abs(X['Received'] - X['Trans']) / (X['Trans']+X['Received'])
-    X['Sent'] = pd.Series(formula_address)
-    
-    addr = list(X['Address'])
-    predictions = clustering.predict(X[['Received', 'Sent']])
-    
+    try:
+        intermediate_address = X[(X['Trans'] <= 5) & (X['Final bal'] <= 10)]
+        intermediate_address.Sent = 'intermediate address'
+        X.drop(intermediate_address.index.values, axis=0, inplace=True)
+        
+        still_waiting = X[X['Trans'] == 1]
+        still_waiting.Sent = 'still waiting'
+        X.drop(still_waiting.index.values, axis=0, inplace=True)
+        cold_store = X[abs(X['Final bal'] - X['Received']) <= 10]
+        cold_store.Sent = 'Cold Storage'
+        X.drop(cold_store.index.values, axis=0, inplace=True)
+        formula_address = [] 
+        for i in range(len(X)):
+            rec = str(int(X.iloc[i]['Received']))
+            rec = len(rec)
+            trans = str(X.iloc[i]['Trans'])
+            trans = len(trans)
+            max_val = max([rec, trans])
+            min_val = min([rec, trans])
+            calc = min_val - (math.e/max_val)
+            formula_address.append(calc)
+        X = X.reset_index()
+        
+        X['Received'] = abs(X['Received'] - X['Trans']) / (X['Trans']+X['Received'])
+        X['Sent'] = pd.Series(formula_address)
+        
+        addr = list(X['Address'])
+        predictions = clustering.predict(X[['Received', 'Sent']])
+    except:
+        1
     final_labels=pd.DataFrame(columns=['Address', 'Label'])
     
     for i in range(len(addr)):
@@ -107,16 +109,15 @@ def label_address(X):
         final_labels = final_labels.append({'Address': addr[i], 'Label': label}, ignore_index=True)
     
     for i in intermediate_address, cold_store, still_waiting:
-        i = i[['Address', 'Sent']]
-        i.columns = ['Address', 'Label']
         try:
+           i = i[['Address', 'Sent']]
+           i.columns = ['Address', 'Label']
            final_labels = pd.concat([final_labels, i], ignore_index=True)
         except:
             1
     return final_labels
 
 
-final_labels = label_address(['37k5U5xQJkojFHkHVgrY7Dq7xtJJNSqVid', '17YyZSNFt31pzGXfZtrzs7Y5Nd56rG2uU5', 
-                '39vi392JLo4ksHUQrajddPJoK1wH8rmUyS', '1CSvNmJ4kCgQr9ubPaerrdhx7yUdLgKyKo',
-                '1JNW9w4kPiiBgaEW12xT5kiHxQgZxFRTQ4', '1N52wHoVR79PMDishab2XmRHsbekCdGquK'])
+
+final_labels = label_address(['37auhiA8ZGpnjHzvsojtzdsikojG9CWWca', '36VxH5w4Q4aPKtcxes8EaKr1iS6o2pq4j3', '3N5Kzco8t2C5ou3aZevHQxpLJXfyMqmRPj'])
 print(final_labels)

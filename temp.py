@@ -11,4 +11,7 @@ test2 = list(set(test2))
 for i in test2:
     if len(i) > 34:
         test2.remove(i)
-        print(i)
+
+for i in test2:
+    if len(i) > 34:
+        test2.remove(i)
