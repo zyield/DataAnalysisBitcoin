@@ -117,8 +117,3 @@ def label_address(X):
         except:
             1
     return final_labels
-
-
-address = ['3MRaLSzdFtMMsqvF95a8fBmqx252rNqCQA', '392LK4ZQD3gixWg5xJRTv1a24N3YDgCbwP']
-final_labels = label_address(address)
-print(final_labels)
