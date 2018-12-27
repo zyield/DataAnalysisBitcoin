@@ -14,6 +14,7 @@ import math
 import pickle
 import warnings
 from multiprocessing.pool import ThreadPool
+import json
 
 warnings.filterwarnings('ignore')
 
@@ -118,6 +119,6 @@ def label_address(X):
     return final_labels
 
 
-
-final_labels = label_address(['3MRaLSzdFtMMsqvF95a8fBmqx252rNqCQA'])
+address = ['3MRaLSzdFtMMsqvF95a8fBmqx252rNqCQA', '392LK4ZQD3gixWg5xJRTv1a24N3YDgCbwP']
+final_labels = label_address(address)
 print(final_labels)
