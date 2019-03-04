@@ -27,3 +27,5 @@ docker ps
 ```
 docker stop <CONTAINER_ID>
 ```
+
+Free API: Free API: https://bitcoin-wallet-classifier.herokuapp.com/
