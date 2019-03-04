@@ -2,6 +2,11 @@
 
 This api labels one or more BTC addresses
 
+## Free API
+```
+https://bitcoin-wallet-classifier.herokuapp.com/
+```
+
 ## Building the Docker container 
 
 ```
@@ -28,4 +33,4 @@ docker ps
 docker stop <CONTAINER_ID>
 ```
 
-Free API: Free API: https://bitcoin-wallet-classifier.herokuapp.com/
+
