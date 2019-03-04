@@ -3,6 +3,7 @@
 This api labels one or more BTC addresses
 
 ## Free API
+Send a wallet address or a batch of addresses and the method will return the type of a wallet. For example: Cold storage, Main exchange etc.
 ```
 https://bitcoin-wallet-classifier.herokuapp.com/
 ```
